@@ -43,7 +43,7 @@ app.innerHTML = `
 
     <section class="panel state-panel" aria-label="Structured information">
       <div class="panel-heading">
-        <h2>Structured Information</h2>
+        <h2>Structured Intake</h2>
         <span class="status" id="captureStatus"></span>
       </div>
       <form class="state-form" id="stateForm">
@@ -112,38 +112,50 @@ const stateForm = getElement<HTMLFormElement>("stateForm");
 const messageInput = getElement<HTMLInputElement>("messageInput");
 const resetButton = getElement<HTMLButtonElement>("resetButton");
 
-let currentState: IntakeState | null = null;
-
 chatForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const message = messageInput.value.trim();
   if (!message) return;
   messageInput.value = "";
-  const session = await postJson<SessionResponse>("/api/chat", { message });
-  render(session);
+  await requestAndRender(() =>
+    postJson<SessionResponse>("/api/chat", { message })
+  );
 });
 
 stateForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const patch = buildPatchFromForm(new FormData(stateForm));
-  const session = await patchJson<SessionResponse>("/api/state", patch);
-  render(session);
+  await requestAndRender(() =>
+    patchJson<SessionResponse>("/api/state", patch)
+  );
 });
 
 resetButton.addEventListener("click", async () => {
-  const session = await postJson<SessionResponse>("/api/reset", {});
-  render(session);
+  await requestAndRender(() => postJson<SessionResponse>("/api/reset", {}));
 });
 
 loadSession();
 
 async function loadSession() {
-  const response = await fetch("/api/session");
-  render(await response.json());
+  await requestAndRender(async () => {
+    const response = await fetch("/api/session");
+    return parseResponse<SessionResponse>(response);
+  });
+}
+
+async function requestAndRender(request: () => Promise<SessionResponse>) {
+  try {
+    render(await request());
+  } catch (error) {
+    renderTransientMessage(
+      error instanceof Error
+        ? error.message
+        : "Something went wrong. Please try again."
+    );
+  }
 }
 
 function render(session: SessionResponse) {
-  currentState = session.state;
   renderMessages(session.history);
   renderState(session.state);
   draftElement.textContent = session.draft_document;
@@ -158,6 +170,14 @@ function renderMessages(messages: ChatMessage[]) {
     bubble.textContent = message.content;
     messagesElement.appendChild(bubble);
   }
+  messagesElement.scrollTop = messagesElement.scrollHeight;
+}
+
+function renderTransientMessage(content: string) {
+  const bubble = document.createElement("div");
+  bubble.className = "message assistant error";
+  bubble.textContent = content;
+  messagesElement.appendChild(bubble);
   messagesElement.scrollTop = messagesElement.scrollHeight;
 }
 

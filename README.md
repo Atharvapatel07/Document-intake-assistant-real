@@ -1,11 +1,14 @@
 # Document Intake Assistant
 
-A small web application for the Wenup engineering technical test. It conducts a conversational intake, maintains structured state, and generates a draft fictional Personal Wishes Document from confirmed information.
+A small web application for the assignment. It conducts a conversational intake, maintains structured state, and generates a draft fictional Personal Wishes Document from confirmed information.
 
-The app intentionally uses a deterministic mock behind an LLM interface. This keeps setup simple, avoids committing secrets, and follows the assignment guidance for candidates without access to a paid LLM API.
+Author: Atharva Patel - [GitHub](https://github.com/Atharvapatel07)
+
+I kept this implementation intentionally small. The brief is about reliable LLM application design, so I focused on state handling, validation, correction flow, document generation, and clear local setup rather than adding product features that were not requested.
+
+The app uses a deterministic mock behind an LLM interface. That keeps setup simple, avoids committing secrets, and follows the assignment guidance for candidates without access to a paid LLM API.
 
 ## Features implemented from the brief
-
 - Backend API and simple web UI.
 - Multi-turn conversation with the assistant.
 - Live structured information preview.
@@ -53,6 +56,10 @@ npm start
 
 See `docs/API.md`.
 
+## Design decisions
+
+See `docs/DESIGN_NOTES.md`.
+
 ## AI usage
 
 See `docs/AI_LOG.md`.
@@ -68,7 +75,7 @@ See `docs/PRODUCTION_NOTES.md`.
 Create a public empty GitHub repository, then run:
 
 ```bash
-git remote add origin https://github.com/<your-user>/document-intake-assistant.git
+git remote add origin https://github.com/Atharvapatel07/document-intake-assistant.git
 git push -u origin main
 ```
 

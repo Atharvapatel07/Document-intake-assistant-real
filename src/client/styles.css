@@ -140,6 +140,12 @@ h2 {
   background: #eef1f4;
 }
 
+.message.error {
+  background: #fff1f1;
+  border: 1px solid #e7b9b9;
+  color: #8a2222;
+}
+
 .message.user {
   align-self: flex-end;
   background: #245d63;

@@ -1,6 +1,6 @@
 # Production Improvement Notes
 
-This assessment build focuses on the features requested in the brief. For production, I would improve:
+This assessment build focuses on the features requested in the brief. If this were moving beyond an interview exercise, I would improve:
 
 - Add a real LLM provider implementation behind the existing `LLMProvider` interface, with schema-constrained responses and retry handling.
 - Replace the in-memory session with authenticated user sessions and durable storage.
