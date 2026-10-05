@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "noEmit": false,
+    "declaration": false
+  },
+  "include": ["src/domain/**/*.ts", "src/llm/**/*.ts", "src/server/**/*.ts", "src/shared/**/*.ts"]
+}
