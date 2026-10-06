@@ -44,40 +44,72 @@ function extractPatch(input: LLMExtractionInput): IntakePatch {
   const patch: IntakePatch = {};
   const nextQuestion = getNextQuestion(input.state);
 
-  const name = matchFirst(text, [
-    /\bfull name is\s+([^.;]+)/i,
-    /\bmy name is\s+([^.;]+)/i,
-    /\bi am\s+([^.;]+)/i,
-    /\bi'm\s+([^.;]+)/i
-  ]);
-  if (name && !looksLikeAddress(name)) {
-    patch.full_name = cleanValue(name);
-  }
+const name = matchFirst(text, [
+  /\bfull name is\s+([^.;]+)/i,
+  /\bmy name is\s+([^.;]+)/i,
+  /\bi am\s+([^.;]+)/i,
+  /\bi'm\s+([^.;]+)/i
+]);
+
+if (name && !looksLikeAddress(name)) {
+  patch.full_name = cleanValue(name);
+} else if (
+  !name &&
+  looksLikeNameAnswer(text) &&
+  nextQuestion?.toLowerCase().includes("full name")
+) {
+  patch.full_name = cleanValue(text);
+}
 
   const address = matchFirst(text, [
-    /\bhome address is\s+([^.;]+)/i,
-    /\baddress is\s+([^.;]+)/i,
-    /\bi live at\s+([^.;]+)/i,
-    /\blive at\s+([^.;]+)/i
-  ]);
-  if (address) patch.home_address = cleanValue(address);
+  /\bhome address is\s+([^.;]+)/i,
+  /\baddress is\s+([^.;]+)/i,
+  /\bi live at\s+([^.;]+)/i,
+  /\blive at\s+([^.;]+)/i
+]);
+
+if (address) {
+  patch.home_address = cleanValue(address);
+} else if (
+  nextQuestion?.toLowerCase().includes("home address") &&
+  looksLikeAddress(text)
+) {
+  patch.home_address = cleanValue(text);
+}
 
   if (mentionsWorldwideYes(lower)) {
+  patch.covers_worldwide_assets = true;
+} else if (mentionsWorldwideNo(lower)) {
+  patch.covers_worldwide_assets = false;
+} else if (nextQuestion?.toLowerCase().includes("worldwide assets")) {
+  if (/^(yes|yeah|yep|yup|true)$/i.test(text)) {
     patch.covers_worldwide_assets = true;
-  } else if (mentionsWorldwideNo(lower)) {
+  } else if (/^(no|nope|false)$/i.test(text)) {
     patch.covers_worldwide_assets = false;
   }
+}
 
   if (mentionsNoChildren(lower)) {
-    patch.has_children = false;
-    patch.children = [];
-  } else {
-    const children = extractChildren(text);
-    if (children.length > 0) {
-      patch.has_children = true;
-      patch.children = children.map((child) => ({ name: child }));
-    }
+  patch.has_children = false;
+  patch.children = [];
+} else if (
+  nextQuestion?.toLowerCase().includes("do you have children") &&
+  /^(no|nope|nah|false)$/i.test(text)
+) {
+  patch.has_children = false;
+  patch.children = [];
+} else if (
+  nextQuestion?.toLowerCase().includes("do you have children") &&
+  /^(yes|yeah|yep|yup|true)$/i.test(text)
+) {
+  patch.has_children = true;
+} else {
+  const children = extractChildren(text);
+  if (children.length > 0) {
+    patch.has_children = true;
+    patch.children = children.map((child) => ({ name: child }));
   }
+}
 
   const executor = extractExecutor(text, nextQuestion);
   if (executor.name || executor.relationship) {
@@ -135,7 +167,15 @@ function cleanValue(value: string): string {
 function looksLikeAddress(value: string): boolean {
   return /\d/.test(value) || /\b(street|road|lane|avenue|flat|apartment)\b/i.test(value);
 }
+function looksLikeNameAnswer(value: string) {
+  const words = value.trim().split(/\s+/);
 
+  return (
+    words.length >= 2 &&
+    words.length <= 4 &&
+    /^[a-zA-Z][a-zA-Z.'-]*(\s+[a-zA-Z][a-zA-Z.'-]*)+$/.test(value.trim())
+  );
+}
 function mentionsWorldwideYes(lower: string): boolean {
   return (
     /\b(worldwide|all my assets|all assets|global)\b/.test(lower) &&

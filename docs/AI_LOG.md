@@ -23,3 +23,21 @@ This project was created with assistance from ChatGPT/Codex, as allowed by the a
 - The mock initially parsed one all-in-one answer too broadly. I tightened the extraction and added a test for that case.
 - I rejected malformed model output in tests instead of silently applying it.
 - I represented unknown values as `null` in state and as `Unknown` in the draft document to avoid inventing facts.
+
+## Replacing the mock with a real LLM
+
+The deterministic `MockLLMProvider` implements the same `LLMProvider`
+interface that a real provider would implement. To use a production LLM,
+I would add a provider such as `OpenAIProvider` without changing the
+assistant service or UI.
+
+The real provider would:
+1. Send the conversation context and current structured state to the LLM.
+2. Request a response matching the existing structured extraction schema.
+3. Parse and validate the response with the existing Zod validator.
+4. Apply only validated state patches.
+5. Keep API credentials on the backend using environment variables.
+
+The mock can therefore be replaced through dependency injection while
+keeping the state management, validation, document generation, and UI
+unchanged.

@@ -96,11 +96,16 @@ app.innerHTML = `
     </section>
 
     <section class="panel draft-panel" aria-label="Draft document">
-      <div class="panel-heading">
-        <h2>Draft Document</h2>
-      </div>
-      <pre id="draft"></pre>
-    </section>
+  <div class="panel-heading">
+    <div>
+      <h2>Draft Document</h2>
+      <p class="document-disclaimer">
+        FICTIONAL DOCUMENT — NOT LEGAL ADVICE
+      </p>
+    </div>
+  </div>
+  <pre id="draft"></pre>
+</section>
   </main>
 `;
 
@@ -143,7 +148,11 @@ async function loadSession() {
   });
 }
 
-async function requestAndRender(request: () => Promise<SessionResponse>) {
+async function requestAndRender(
+  request: () => Promise<SessionResponse>
+) {
+  setLoading(true);
+
   try {
     render(await request());
   } catch (error) {
@@ -152,6 +161,33 @@ async function requestAndRender(request: () => Promise<SessionResponse>) {
         ? error.message
         : "Something went wrong. Please try again."
     );
+  } finally {
+    setLoading(false);
+  }
+}
+
+function setLoading(loading: boolean) {
+  messageInput.disabled = loading;
+  resetButton.disabled = loading;
+
+  const sendButton = chatForm.querySelector(
+    'button[type="submit"]'
+  ) as HTMLButtonElement | null;
+
+  if (sendButton) {
+    sendButton.disabled = loading;
+    sendButton.textContent = loading ? "Thinking..." : "Send";
+  }
+
+  const correctionButton = stateForm.querySelector(
+    'button[type="submit"]'
+  ) as HTMLButtonElement | null;
+
+  if (correctionButton) {
+    correctionButton.disabled = loading;
+    correctionButton.textContent = loading
+      ? "Saving..."
+      : "Apply corrections";
   }
 }
 

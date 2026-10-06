@@ -14,6 +14,21 @@ describe("LLM response validation", () => {
 
     expect(parsed.state_patch.full_name).toBe("Jane Smith");
   });
+  it("handles an ambiguous model response", () => {
+  const parsed = validateModelExtraction({
+    state_patch: {
+      full_name: "Jane Smith",
+      covers_worldwide_assets: null
+    },
+    assistant_message: "Can you clarify whether the document should cover worldwide assets?",
+    needs_clarification: true,
+    warnings: ["Worldwide asset coverage is unclear."]
+  });
+
+  expect(parsed.needs_clarification).toBe(true);
+  expect(parsed.assistant_message).toContain("clarify");
+  expect(parsed.warnings).toContain("Worldwide asset coverage is unclear.");
+});
 
   it("rejects malformed model output before state updates", () => {
     expect(() =>

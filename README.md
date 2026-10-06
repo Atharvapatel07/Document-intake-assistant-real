@@ -21,8 +21,6 @@ The app uses a deterministic mock behind an LLM interface. That keeps setup simp
 - Automated tests around core behavior.
 - AI log and production improvement notes.
 
-No extra product features such as authentication, persistence, PDF export, or legal clause libraries are included.
-
 ## Tech stack
 
 - TypeScript
@@ -39,7 +37,7 @@ cp .env.example .env
 npm run dev
 ```
 
-Open the Vite URL shown in the terminal, usually `http://127.0.0.1:5173`.
+Open the Vite URL shown in the terminal,  `http://127.0.0.1:5173`.
 
 The API runs on `http://127.0.0.1:3001`.
 
@@ -90,3 +88,15 @@ src/shared       Shared schemas and types
 tests            Automated tests
 docs             API contract, AI log, production notes
 ```
+### Replacing the mock with a real LLM
+
+The deterministic `MockLLMProvider` implements the same `LLMProvider`
+interface that a real provider would implement. A production provider such
+as OpenAI could therefore be added without changing the assistant service,
+state management, validation, document generation, or UI.
+
+The real provider would send the conversation context and current structured
+state to the LLM, request a response matching the existing structured schema,
+and pass the result through the existing Zod validation before applying any
+state changes. API credentials would remain server-side in environment
+variables.
